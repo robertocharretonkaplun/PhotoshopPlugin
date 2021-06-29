@@ -2,14 +2,6 @@
 // Ref for Action references: https://csharp.hotexamples.com/es/examples/Photoshop/ActionReference/PutEnumerated/php-actionreference-putenumerated-method-examples.html
 
 
-const Channels = {
-    R: "Red",
-    G: "Green",
-    B: "Blue",
-}
-
-var channel = Channels.R;
-
 var doc = app.activeDocument;
 var wnd = new Window("dialog", "Buzzshock Compression");
 wnd.size = [300, 300];
@@ -28,21 +20,25 @@ BtnRechannel = myButtonGroup.add("button", undefined, "Rechannel");
     
 BtnRechannel.onClick = function () {
     // Get each layer by individual
-    var R = doc.layers[0];
-    var M = doc.layers[1];
-    var AO = doc.layers[2];
+    var RL = doc.layers[0];
+    var ML = doc.layers[1];
+    var AOL = doc.layers[2];
 
     // Set Red channel to Roughness
-    doc.activeLayer = R;
-    setColorChannel('Red');
+    doc.activeLayer = RL;
+    setColorChannel(true, false, false);
     // Set Green channel to Metallic
-    doc.activeLayer = M;
-    setColorChannel('Green');
+    doc.activeLayer = ML;
+    setColorChannel(false, true, false);
     // Set Blue channel to AO
-    doc.activeLayer = AO;
-    setColorChannel('Blue');
+    doc.activeLayer = AOL;
+    setColorChannel(false, false, true);
 
-}
+    // Save file
+    var file = new File(doc.path + "/" + "RGBCHANNEL" + ".png");
+    var opts = new PNGSaveOptions();
+    doc.saveAs(file, opts, true);
+};
 // Compress Button
 BtnCompress = myButtonGroup.add("button", undefined, "Compress");
 BtnCompress.alignment = "right";
@@ -53,12 +49,14 @@ BtnCompress.onClick = function () {
     var file = new File(doc.path + "/" + doc.name + ".png");
     var opts = new PNGSaveOptions();
     doc.saveAs(file, opts, true);
-}
+};
 // Cancel Button
 BtnCancel = myButtonGroup.add("button", undefined, "Cancel", { name: "cancel" });
+
+
 wnd.show();
 
-function setColorChannel(Chnnel) {
+function setColorChannel(R,G,B) {
     var AD = new ActionDescriptor();
     var AR = new ActionReference();
     AR.putEnumerated(app.charIDToTypeID('Lyr '),
@@ -67,17 +65,25 @@ function setColorChannel(Chnnel) {
     AD.putReference(app.charIDToTypeID('null'), AR);
     var AL = new ActionList();
     // Enable channel
-    if(Chnnel == 'Red')
-        AL.putEnumerated(app.charIDToTypeID('Chnl'), app.charIDToTypeID('Rd  '));
+    if(R) {
+        AL.putEnumerated(app.charIDToTypeID('Chnl'),
+                         app.charIDToTypeID('Rd  '));
+    }
 
-    if(Chnnel == 'Green')
-        AL.putEnumerated(app.charIDToTypeID('Chnl'), app.charIDToTypeID('Grn  '));
+    if(G) {
+        AL.putEnumerated(app.charIDToTypeID('Chnl'), 
+                         app.charIDToTypeID('Grn  '));
+    }
 
-    if (Chnnel == 'Blue')
-        AL.putEnumerated(app.charIDToTypeID('Chnl'), app.charIDToTypeID('Bl  '));
+    if (B) {
+        AL.putEnumerated(app.charIDToTypeID('Chnl'), 
+                         app.charIDToTypeID('Bl  '));
+    }
     
     var ADForChannelRestrictions = new ActionDescriptor();
     ADForChannelRestrictions.putList(app.stringIDToTypeID('channelRestrictions'), AL);
     AD.putObject(app.charIDToTypeID('T   '), app.charIDToTypeID('Lyr '), ADForChannelRestrictions);
     executeAction(app.charIDToTypeID('setd'), AD, DialogModes.NO);
 };
+
+// Create script to make batch export all docs turn to be from dds to png and png to dds
