@@ -46,7 +46,7 @@ BtnCompress.onClick = function () {
     // Resize the image
 
     doc.resizeImage(doc.width / slider.value, doc.height / slider.value);
-    var file = new File(doc.path + "/" + doc.name + ".png");
+    var file = new File(doc.path + "/" + "testRGB" + ".png");
     var opts = new PNGSaveOptions();
     doc.saveAs(file, opts, true);
 };

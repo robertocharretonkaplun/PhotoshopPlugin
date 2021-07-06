@@ -35,9 +35,9 @@ var statictext1 = panel1.add("statictext", undefined, undefined, {name: "statict
     statictext1.text = "Proyect Layers"; 
 
 var listbox1_array = []; 
-for (var i = 0; i < doc.layers.length; ++i) {
-    listbox1_array.push(doc.layers[i].name);
-};
+for (var i = 0; i < doc.artLayers.length; ++i) {
+    listbox1_array.push(doc.artLayers[i].name);
+}
 
 var listbox1 = panel1.add("listbox", undefined, undefined, {name: "listbox1", items: listbox1_array}); 
     listbox1.selection = 0; 
@@ -57,10 +57,11 @@ var button1 = group2.add("button", undefined, undefined, {name: "button1"});
     button1.text = "Export DDS to PNG"; 
 
     button1.onClick = function () {
+        
         // Store the layers PNG files on the a special folder
-        for(var i = 0; i < doc.layers.length; ++i) {
+        for(var i = 0; i < doc.artLayers.length; ++i) {
             // Store Current layer in folder
-            var file = new File(doc.path + "/DDS2PNG/" + doc.layers[i].name + ".png");
+            var file = new File(doc.path + "/DDS2PNG/" + doc.artLayers[i].name + ".png");
             var opts = new PNGSaveOptions();
             doc.saveAs(file, opts, true);      
         }
@@ -68,6 +69,12 @@ var button1 = group2.add("button", undefined, undefined, {name: "button1"});
 
 var button2 = group2.add("button", undefined, undefined, {name: "button2"}); 
     button2.text = "Export PNG to DDS"; 
+    button2.onClick = function() {
+        for(var i = 0; i < doc.artLayers.length; ++i) {
+            // Store Current layer in folder
+            saveDDS(doc.path + "/DDS2PNG/" + doc.artLayers[i].name); 
+        }
+    }
 
 // PANEL2
 // ======
@@ -84,7 +91,10 @@ var statictext2 = panel2.add("statictext", undefined, undefined, {name: "statict
     statictext2.text = "Layers to be rechannel:"; 
 
 var statictext3 = panel2.add("statictext", undefined, undefined, {name: "statictext3"}); 
+if(doc.artLayers.length>=3){
+
     statictext3.text = "0: " + doc.layers[0].name; 
+}
 
 // GROUP3
 // ======
@@ -106,7 +116,10 @@ var checkbox3 = group3.add("checkbox", undefined, undefined, {name: "checkbox3"}
 // PANEL2
 // ======
 var statictext4 = panel2.add("statictext", undefined, undefined, {name: "statictext4"}); 
-    statictext4.text = "1: " + doc.layers[1].name; 
+    if(doc.artLayers.length>=3){
+        statictext4.text = "1: " + doc.layers[1].name; 
+
+    }
 
 // GROUP4
 // ======
@@ -128,7 +141,9 @@ var checkbox6 = group4.add("checkbox", undefined, undefined, {name: "checkbox6"}
 // PANEL2
 // ======
 var statictext5 = panel2.add("statictext", undefined, undefined, {name: "statictext5"}); 
+if(doc.artLayers.length>=3){
     statictext5.text = "2: " + doc.layers[2].name; 
+}
 
 // GROUP5
 // ======
@@ -300,6 +315,89 @@ var button5 = panel4.add("button", undefined, undefined, {name: "button5"});
       doc.saveAs(file, opts, true);
     }
 
+// PANEL5
+// ======
+var panel5 = dialog.add("panel", undefined, undefined, {name: "panel5"}); 
+    panel5.text = "Loader"; 
+    panel5.orientation = "column"; 
+    panel5.alignChildren = ["left","top"]; 
+    panel5.spacing = 10; 
+    panel5.margins = 10; 
+
+// GROUP11
+// =======
+var group11 = panel5.add("group", undefined, {name: "group11"}); 
+    group11.orientation = "row"; 
+    group11.alignChildren = ["left","center"]; 
+    group11.spacing = 10; 
+    group11.margins = 0; 
+
+var statictext10 = group11.add("statictext", undefined, undefined, {name: "statictext10"}); 
+    statictext10.text = "Path"; 
+
+var edittext2 = group11.add('edittext {properties: {name: "edittext2"}}'); 
+    //edittext2.text = "Enter your path..."; 
+
+// GROUP12
+// =======
+var group12 = panel5.add("group", undefined, {name: "group12"}); 
+    group12.orientation = "row"; 
+    group12.alignChildren = ["left","center"]; 
+    group12.spacing = 10; 
+    group12.margins = 0; 
+
+var statictext11 = group12.add("statictext", undefined, undefined, {name: "statictext11"}); 
+    statictext11.text = "Import files of type"; 
+
+var edittext3 = group12.add('edittext {properties: {name: "edittext3"}}'); 
+    edittext3.text = ".png"; 
+
+// PANEL5
+// ======
+var button6 = panel5.add("button", undefined, undefined, {name: "button6"}); 
+    button6.text = "Import all files..."; 
+    button6.onClick = function() {
+
+        var prefs = new Object();
+	prefs.sourceFolder         = '~';  // default browse location (default: '~')
+	prefs.removeFileExtensions = true; // remove filename extensions for imported layers (default: true)
+	prefs.savePrompt           = false; // display save prompt after import is complete (default: false)
+	prefs.closeAfterSave       = false; // close import document after saving (default: false)
+        // prompt for source folder
+	var sourceFolder = Folder.selectDialog('Please select the folder to be imported:', Folder(prefs.sourceFolder));
+
+	// ensure the source folder is valid
+	if (!sourceFolder) {
+		return;
+	}
+	else if (!sourceFolder.exists) {
+		alert('Source folder not found.', 'Script Stopped', true);
+		return;
+	}
+
+	// add source folder to user settings
+	prefs.sourceFolder = sourceFolder;
+
+	// get a list of files
+	var fileArray = getFiles(prefs.sourceFolder);
+
+	// if files were found, proceed with import
+	if (fileArray.length) {
+		importFolderAsLayers(fileArray, prefs);
+	}
+	// otherwise, diplay message
+	else {
+		alert("The selected folder doesn't contain any recognized images.", 'No Files Found', false);
+	}
+
+}
+var button7 = panel5.add("button", undefined, undefined, {name: "button7"}); 
+button7.text = "Order Layers In Groups"; 
+button7.onClick = function() {
+        // Order layers in folders
+        OrderLayersInFolders();
+    }
+
 // GROUP8
 // ======
 var group8 = dialog.add("group", undefined, {name: "group8"}); 
@@ -319,3 +417,268 @@ var cancel = group8.add("button", undefined, undefined, {name: "cancel"});
 
 dialog.show();
 
+// Ref: https://github.com/yogensia/YogDDSExport/blob/master/YogDDSExport.jsx
+function saveDDS(savePath) {
+    var idsave = charIDToTypeID("save");
+    var desc24 = new ActionDescriptor();
+    var idAs = charIDToTypeID("As  ");
+    var desc25 = new ActionDescriptor();
+    var idsFoI = charIDToTypeID("sFoI");
+    desc25.putInteger(idsFoI, 0);
+    var idsASC = charIDToTypeID("sASC");
+    desc25.putInteger(idsASC, 0);
+    var idsTxT = charIDToTypeID("sTxT");
+    var idenTT = charIDToTypeID("enTT");
+    var idtxtwoD = charIDToTypeID("tx2D");
+    desc25.putEnumerated(idsTxT, idenTT, idtxtwoD);
+    var idmipF = charIDToTypeID("mipF");
+    desc25.putBoolean(idmipF, true);
+    var idmpFT = charIDToTypeID("mpFT");
+    desc25.putInteger(idmpFT, 0);
+    var idmOFW = charIDToTypeID("mOFW");
+    desc25.putBoolean(idmOFW, false);
+    var idmFOV = charIDToTypeID("mFOV");
+    desc25.putDouble(idmFOV, 2.000000);
+    var idmpPA = charIDToTypeID("mpPA");
+    desc25.putBoolean(idmpPA, true);
+    var idiOOM = charIDToTypeID("iOOM");
+    var ideIOM = charIDToTypeID("eIOM");
+    var ideICo = charIDToTypeID("eICo");
+    desc25.putEnumerated(idiOOM, ideIOM, ideICo);
+    var idiOBS = charIDToTypeID("iOBS");
+    desc25.putBoolean(idiOBS, false);
+    var idiOBr = charIDToTypeID("iOBr");
+    desc25.putDouble(idiOBr, 0.000000);
+    var idiOBg = charIDToTypeID("iOBg");
+    desc25.putDouble(idiOBg, 0.000000);
+    var idiOBb = charIDToTypeID("iOBb");
+    desc25.putDouble(idiOBb, 0.000000);
+    var idiOBa = charIDToTypeID("iOBa");
+    desc25.putDouble(idiOBa, 1.000000);
+    var idiOCQ = charIDToTypeID("iOCQ");
+    desc25.putInteger(idiOCQ, 0);
+    var idiOSr = charIDToTypeID("iOSr");
+    desc25.putDouble(idiOSr, 1.000000);
+    var idiOSg = charIDToTypeID("iOSg");
+    desc25.putDouble(idiOSg, 1.000000);
+    var idiOSb = charIDToTypeID("iOSb");
+    desc25.putDouble(idiOSb, 1.000000);
+    var idiOSa = charIDToTypeID("iOSa");
+    desc25.putDouble(idiOSa, 1.000000);
+    var idiBir = charIDToTypeID("iBir");
+    desc25.putDouble(idiBir, 0.000000);
+    var idiBig = charIDToTypeID("iBig");
+    desc25.putDouble(idiBig, 0.000000);
+    var idiBib = charIDToTypeID("iBib");
+    desc25.putDouble(idiBib, 0.000000);
+    var idiBia = charIDToTypeID("iBia");
+    desc25.putDouble(idiBia, 0.000000);
+    var idiOWr = charIDToTypeID("iOWr");
+    desc25.putBoolean(idiOWr, false);
+    var idiOAZ = charIDToTypeID("iOAZ");
+    desc25.putBoolean(idiOAZ, false);
+    var idiOBA = charIDToTypeID("iOBA");
+    desc25.putBoolean(idiOBA, false);
+    var idiOSu = charIDToTypeID("iOSu");
+    desc25.putBoolean(idiOSu, false);
+    var idiOBT = charIDToTypeID("iOBT");
+    desc25.putInteger(idiOBT, 127);
+    var idiOBD = charIDToTypeID("iOBD");
+    desc25.putBoolean(idiOBD, false);
+    var idiOPA = charIDToTypeID("iOPA");
+    desc25.putBoolean(idiOPA, false);
+    var idiOonezero = charIDToTypeID("iO10");
+    desc25.putBoolean(idiOonezero, false);
+    var idiZsd = charIDToTypeID("iZsd");
+    desc25.putBoolean(idiZsd, true);
+    var idiZlv = charIDToTypeID("iZlv");
+    desc25.putInteger(idiZlv, 5);
+    var idnFTy = charIDToTypeID("nFTy");
+    desc25.putInteger(idnFTy, 5);
+    var idnWrp = charIDToTypeID("nWrp");
+    desc25.putBoolean(idnWrp, true);
+    var idnIvX = charIDToTypeID("nIvX");
+    desc25.putBoolean(idnIvX, false);
+    var idnIvY = charIDToTypeID("nIvY");
+    desc25.putBoolean(idnIvY, false);
+    var idnMnZ = charIDToTypeID("nMnZ");
+    desc25.putDouble(idnMnZ, 0.000000);
+    var idnNSc = charIDToTypeID("nNSc");
+    desc25.putDouble(idnNSc, 1.000000);
+    var idnCSr = charIDToTypeID("nCSr");
+    desc25.putInteger(idnCSr, 1);
+    var idnAFi = charIDToTypeID("nAFi");
+    desc25.putInteger(idnAFi, 0);
+    var idnNNl = charIDToTypeID("nNNl");
+    desc25.putBoolean(idnNNl, true);
+    var idnNCF = charIDToTypeID("nNCF");
+    var idenCD = charIDToTypeID("enCD");
+    var idecnZ = charIDToTypeID("ecnZ");
+    desc25.putEnumerated(idnNCF, idenCD, idecnZ);
+    var idnNCU = charIDToTypeID("nNCU");
+    var idenCD = charIDToTypeID("enCD");
+    var idecpY = charIDToTypeID("ecpY");
+    desc25.putEnumerated(idnNCU, idenCD, idecpY);
+    var idnNCR = charIDToTypeID("nNCR");
+    var idenCD = charIDToTypeID("enCD");
+    var idecpX = charIDToTypeID("ecpX");
+    desc25.putEnumerated(idnNCR, idenCD, idecpX);
+    var idiOFV = charIDToTypeID("iOFV");
+    desc25.putBoolean(idiOFV, false);
+    var idfxSt = charIDToTypeID("fxSt");
+    desc25.putString(idfxSt, """0 """);
+    var idsirV = charIDToTypeID("sirV");
+    desc25.putInteger(idsirV, 1);
+    var idNVIDIADDSNVIDIATextureToolsExporter = stringIDToTypeID("NVIDIA DDS - NVIDIA Texture Tools Exporter");
+    desc24.putObject(idAs, idNVIDIADDSNVIDIATextureToolsExporter, desc25);
+    var idIn = charIDToTypeID("In  ");
+    desc24.putPath(idIn, new File(savePath + ".dds"));
+    var idDocI = charIDToTypeID("DocI");
+    desc24.putInteger(idDocI, 219);
+    var idsaveStage = stringIDToTypeID("saveStage");
+    var idsaveStageType = stringIDToTypeID("saveStageType");
+    var idsaveSucceeded = stringIDToTypeID("saveSucceeded");
+    desc24.putEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded);
+    executeAction(idsave, desc24, DialogModes.NO);
+}
+
+function importFolderAsLayers(fileArray, prefs) {
+	// create a new document
+	var newDoc = documents.add(300, 300, 72, 'Imported Layers', NewDocumentMode.RGB, DocumentFill.TRANSPARENT, 1);
+	var newLayer = newDoc.activeLayer;
+
+	// loop through all files in the source folder
+	for (var i = 0; i < fileArray.length; i++) {
+		// open document
+		var doc = open(fileArray[i]);
+
+		// get document name (and remove file extension)
+		var name = doc.name;
+		if (prefs.removeFileExtensions) {
+			name = name.replace(/(?:\.[^.]*$|$)/, '');
+		}
+
+		// convert to RGB; convert to 8-bpc; merge visible
+		doc.changeMode(ChangeMode.RGB);
+		doc.bitsPerChannel = BitsPerChannelType.EIGHT;
+		doc.artLayers.add();
+		doc.mergeVisibleLayers();
+
+		// rename layer; duplicate to new document
+		var layer = doc.activeLayer;
+		layer.name = name;
+		layer.duplicate(newDoc, ElementPlacement.PLACEATBEGINNING);
+
+		// close imported document
+		doc.close(SaveOptions.DONOTSAVECHANGES);
+	}	
+
+	// delete empty layer; reveal and trim to fit all layers
+	newLayer.remove();
+	newDoc.revealAll();
+	newDoc.trim(TrimType.TRANSPARENT, true, true, true, true);
+
+	// save the final document
+	if (prefs.savePrompt) {
+		// PSD save options
+		var saveOptions = new PhotoshopSaveOptions();
+		saveOptions.layers = true;
+		saveOptions.embedColorProfile = true;
+
+		// prompt for save name and location
+		var saveFile = File.saveDialog('Save the new document as:');
+		if (saveFile) {
+			newDoc.saveAs(saveFile, saveOptions, false, Extension.LOWERCASE);
+		}
+
+		// close import document
+		if (prefs.closeAfterSave) {
+			newDoc.close(SaveOptions.DONOTSAVECHANGES);
+		}
+	}
+}
+
+function getFiles(sourceFolder) {
+	// declare local variables
+	var fileArray = new Array();
+	var extRE = /\.(?:png|gif|jpg|bmp|tif|psd|dds|jpeg)$/i;
+
+	// get all files in source folder
+	var docs = sourceFolder.getFiles();
+	var len = docs.length;
+	for (var i = 0; i < len; i++) {
+		var doc = docs[i];
+
+		// only match files (not folders)
+		if (doc instanceof File) {
+			// store all recognized files into an array
+			var docName = doc.name;
+			if (docName.match(extRE)) {
+				fileArray.push(doc);
+			}
+		}
+	}
+
+	// return file array
+	return fileArray;
+}
+
+function OrderLayersInFolders() {
+    var count = doc.artLayers.length;
+    var groupNames = []
+    var groupCounter = 0;
+    for(var i = 0; i < count; ++i) {
+        var tmpNameArray = []
+        var tmpName = "";
+        var currLayer = doc.artLayers[i];
+        var currLayerName = currLayer.name;
+        var folderName;
+        //alert("Layer Name: " + currLayerName, false);
+        // Store the name of the layer by individual until texture type
+        for (var j = 0; j< currLayerName.length ; ++j) {
+            // Set a current Character of the current layer name
+            var currChar = currLayerName[j];
+            // Store the temp name adding the new character
+            tmpName  += currChar;
+            
+            // If the temp name is 'BaseColor's
+            if( tmpName == "BaseColor" || tmpName == "Rough" || tmpName == "Normal" || 
+                tmpName == "Metallic" || tmpName == "AO" || tmpName == "Emissive") {
+                
+                //alert("Folder Name: " + folderName, false);
+                // Store the current layer in a Folder named as the array added String
+                if(doc.layerSets.length == 0){
+                    var newGroup = doc.layerSets.add();
+                    newGroup.name = folderName;
+                    currLayer.move(newGroup, ElementPlacement.INSIDE);
+                    groupCounter++;
+                }
+                else {
+                    for(var g = 0; g < doc.layerSets.length; ++g) {
+                        var currGroup = doc.layerSets[g];
+                        // If there isnt a existing group,create a new one
+                        if(currGroup.name != folderName) {
+                            var newGroup = doc.layerSets.add();
+                            newGroup.name = folderName;
+                            currLayer.move(newGroup, ElementPlacement.INSIDE);
+                            groupCounter++;
+                        }
+                        else 
+                        {
+                            currLayer.move(currGroup, ElementPlacement.INSIDE);
+                        }
+                    }
+                }
+                tmpName = '';
+            }
+            // If the current character is a '_', clear the var and start again
+            if (currChar == " ") {
+                tmpNameArray.push(tmpName);
+                //alert("Stored in Array: " + tmpName, false);
+                // Set the Name of the folder
+                folderName = "Group - " + tmpName;
+                tmpName = '';
+            }
+        }
+    }
+}
