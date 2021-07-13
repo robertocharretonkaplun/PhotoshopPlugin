@@ -638,7 +638,7 @@ function OrderLayersInFolders() {
         for (var j = 0; j< currLayerName.length ; ++j) {
             // Set a current Character of the current layer name
             var currChar = currLayerName[j];
-            // Store the temp name adding the new character
+            // Store the temp name adding the new character - BattleDroid Basecolor
             tmpName  += currChar;
             
             // If the temp name is 'BaseColor's
@@ -656,6 +656,7 @@ function OrderLayersInFolders() {
                 else {
                     for(var g = 0; g < doc.layerSets.length; ++g) {
                         var currGroup = doc.layerSets[g];
+                        alert("Aqui Crashea", false);
                         // If there isnt a existing group,create a new one
                         if(currGroup.name != folderName) {
                             var newGroup = doc.layerSets.add();
