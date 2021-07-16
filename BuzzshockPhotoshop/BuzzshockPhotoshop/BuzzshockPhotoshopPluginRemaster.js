@@ -43,6 +43,12 @@ var image1_imgString = "%C2%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00d%00%00%00
 var image1 = group1.add("image", undefined, File.decode(image1_imgString), {name: "image1"}); 
     image1.helpTip = "Buzzshock Connect Logo"; 
 
+// Store layers names
+var listbox1_array = []; 
+for (var i = 0; i < doc.artLayers.length; ++i) {
+    listbox1_array.push(doc.artLayers[i].name);
+}
+
 var button1 = group1.add("button", undefined, undefined, {name: "button1"}); 
     button1.helpTip = "Refresh the tool information"; 
     button1.text = "Refresh"; 
@@ -111,26 +117,37 @@ var edittext1 = group4.add('edittext {properties: {name: "edittext1"}}');
 
 // PANEL1
 // ======
-var statictext2 = panel1.add("statictext", undefined, undefined, {name: "statictext2"}); 
-    statictext2.text = "LOD Level:"; 
+
+var dropdown0 = panel1.add("dropdownlist", undefined, undefined, {name: "dropdown0", items: listbox1_array}); 
+    dropdown0.helpTip = "Select the layer to be compressed."; 
+    dropdown0.selection = 0;
+    var statictext2 = panel1.add("statictext", undefined, undefined, {name: "statictext2"}); 
+    statictext2.text = "Mipmap Level:"; 
     statictext2.justify = "center"; 
     
     var LODSlider = panel1.add("slider", undefined, undefined, undefined, undefined, {name: "LODSlider"}); 
-    LODSlider.minvalue = 0; 
-    LODSlider.maxvalue = 100; 
-    LODSlider.value = 50; 
+    LODSlider.minvalue = 1; 
+    LODSlider.maxvalue = 14; 
+    LODSlider.value = 0; 
     
-    statictext2.onChanging = function() {
-        statictext2.text = "LOD Level:" + LODSlider.value; 
-      }     
-var button2 = panel1.add("button", undefined, undefined, {name: "button2"}); 
+    LODSlider.onChanging = function() {
+        statictext2.text = "Level:" + Math.round(LODSlider.value); 
+    }     
+    var button2 = panel1.add("button", undefined, undefined, {name: "button2"}); 
     button2.text = "Compress"; 
     button2.onClick = function() {
+        SetAllLayersVisible(false);
+        var realW = doc.width;
+        var realH = doc.height;
+        doc.activeLayer = doc.artLayers[dropdown0.selection];
+        doc.activeLayer.visible = true;
         var fileName = edittext1.text;
-        doc.resizeImage(doc.width / LODSlider.value, doc.height / LODSlider.value);
+        doc.resizeImage(doc.width / Math.round(LODSlider.value), doc.height / Math.round(LODSlider.value));
         var file = new File(CompressionPath + "/" + fileName);
         var opts = new PNGSaveOptions();
         doc.saveAs(file, opts, true);
+        SetAllLayersVisible(true);
+        doc.resizeImage(realW, realH);
     }
 
 // GROUP5
@@ -154,11 +171,7 @@ var statictext3 = panel2.add("statictext", undefined, undefined, {name: "statict
     statictext3.text = "Proyect Layers"; 
     statictext3.alignment = ["center","top"]; 
 
-// Store layers names
-var listbox1_array = []; 
-for (var i = 0; i < doc.artLayers.length; ++i) {
-    listbox1_array.push(doc.artLayers[i].name);
-}
+
 
 var listbox1 = panel2.add("listbox", undefined, undefined, {name: "listbox1", items: listbox1_array}); 
     listbox1.selection = 0; 
@@ -219,7 +232,7 @@ var group8 = panel3.add("group", undefined, {name: "group8"});
 
 var dropdown1 = group8.add("dropdownlist", undefined, undefined, {name: "dropdown1", items: listbox1_array}); 
     dropdown1.helpTip = "Choose the layer that you want to add to the rechannel img: Example {Rough, Metallic, AO}"; 
-    //dropdown1.selection = 0; 
+    dropdown1.selection = 0; 
 
 var checkbox1 = group8.add("checkbox", undefined, undefined, {name: "checkbox1"}); 
     checkbox1.text = "R"; 
@@ -239,7 +252,7 @@ var group9 = panel3.add("group", undefined, {name: "group9"});
     group9.margins = 0; 
 
 var dropdown2 = group9.add("dropdownlist", undefined, undefined, {name: "dropdown2", items: listbox1_array}); 
-    //dropdown2.selection = 2; 
+    dropdown2.selection = 1; 
 
 var checkbox4 = group9.add("checkbox", undefined, undefined, {name: "checkbox4"}); 
     checkbox4.text = "R"; 
@@ -259,7 +272,7 @@ var group10 = panel3.add("group", undefined, {name: "group10"});
     group10.margins = 0; 
 
 var dropdown3 = group10.add("dropdownlist", undefined, undefined, {name: "dropdown3", items: listbox1_array}); 
-    //dropdown3.selection = 2; 
+    dropdown3.selection = 2; 
 
 var checkbox7 = group10.add("checkbox", undefined, undefined, {name: "checkbox7"}); 
     checkbox7.text = "R"; 
@@ -279,7 +292,7 @@ var checkbox10 = panel3.add("checkbox", undefined, undefined, {name: "checkbox10
     // GROUP11
     // =======
     var group11 = panel3.add("group", undefined, {name: "group11"}); 
-    group11.enabled = false; 
+    group11.enabled = true; 
     group11.orientation = "row"; 
     group11.alignChildren = ["left","center"]; 
     group11.spacing = 10; 
@@ -287,7 +300,7 @@ var checkbox10 = panel3.add("checkbox", undefined, undefined, {name: "checkbox10
     
     
     var dropdown4 = group11.add("dropdownlist", undefined, undefined, {name: "dropdown4", items: listbox1_array}); 
-    //dropdown4.selection = 0; 
+    dropdown4.selection = 3; 
     
     var checkbox11 = group11.add("checkbox", undefined, undefined, {name: "checkbox11"}); 
     checkbox11.text = "R"; 
@@ -298,17 +311,17 @@ var checkbox10 = panel3.add("checkbox", undefined, undefined, {name: "checkbox10
     var checkbox13 = group11.add("checkbox", undefined, undefined, {name: "checkbox13"}); 
     checkbox13.text = "B"; 
     
-    checkbox10.onActivate = function(){
+    //checkbox10.onActivate = function(){
         //app.refresh();
-        group11.enabled = true;
-        enableMoreLayers = true;
-    };
+        //group11.enabled = true;
+        //enableMoreLayers = true;
+    //};
 
-    checkbox10.onDeactivate = function(){
-        group11.enabled = false;
+    //checkbox10.onDeactivate = function(){
+        //group11.enabled = false;
         //app.refresh();
-        enableMoreLayers = false;
-    };
+      //  enableMoreLayers = false;
+    //};
 
 // GROUP13
 // =======
@@ -328,25 +341,27 @@ var button4 = group13.add("button", undefined, undefined, {name: "button4"});
   
         // Set Red channel to Roughness
         doc.activeLayer = RL;
-        setColorChannel(checkbox1.value, checkbox2.value, checkbox3.value);
+        setColorChannel(checkbox1.value, checkbox2.value, checkbox3.value, false);
         // Set Green channel to Metallic
         doc.activeLayer = ML;
-        setColorChannel(checkbox4.value, checkbox5.value, checkbox6.value);
+        setColorChannel(checkbox4.value, checkbox5.value, checkbox6.value, false);
         // Set Blue channel to AO
         doc.activeLayer = AOL;
-        setColorChannel(checkbox7.value, checkbox8.value, checkbox9.value);
+        setColorChannel(checkbox7.value, checkbox8.value, checkbox9.value, false);
 
-        //if(enableMoreLayers) {
-        //    doc.activeLayer = doc.artLayers[dropdown4.selection];
-        //    setColorChannel(checkbox11.value, checkbox12.value, checkbox13.value);
-        //}
+        
+        if(enableMoreLayers) {
+        }
+        doc.activeLayer = doc.artLayers[dropdown4.selection];
+        //setColorChannel(false,false,false,true);
   
         // Save file
-        var file = new File(RechannelPath + "RGBCHANNEL" + ".png");
+        var layerNameMixedType = RL.name[0] + ML.name[0] + AOL.name[0]; 
+        var file = new File(RechannelPath + "Rechannel ("+layerNameMixedType + ").png");
         var opts = new PNGSaveOptions();
         doc.saveAs(file, opts, true);
       }
-      button4.helpTip = RechannelPath+ "RGBCHANNEL" + ".png";
+      //button4.helpTip = RechannelPath+ "RGBCHANNEL" + ".png";
 // TAB2
 // ====
 var tab2 = tpanel1.add("tab", undefined, undefined, {name: "tab2"}); 
@@ -461,7 +476,7 @@ var panel5 = group16.add("panel", undefined, undefined, {name: "panel5"});
 
 var button8 = panel5.add("button", undefined, undefined, {name: "button8"}); 
     button8.helpTip = "Order all layers by name and specific type (BaseColor, Normal, Metallic, Rough, AO}. Image Name example: 'BattleDroid BaseColor'"; 
-    button8.text = "Order All Layers In Groups"; 
+    button8.text = "Order All Layers In Groups " + doc.artLayers.length; 
     button8.onClick = function() {
         // Order layers in folders
         OrderLayersInFolders();
@@ -858,7 +873,6 @@ function getFiles(sourceFolder) {
 
 function OrderLayersInFolders() {
     var count = doc.artLayers.length;
-    var groupNames = []
     var groupCounter = 0;
     for(var i = 0; i < count; ++i) {
         var tmpNameArray = []
@@ -877,35 +891,10 @@ function OrderLayersInFolders() {
             // If the temp name is 'BaseColor's
             if( tmpName == "BaseColor" || tmpName == "Rough" || tmpName == "Normal" || 
                 tmpName == "Metallic" || tmpName == "AO" || tmpName == "Emissive") {
-                
-                //alert("Folder Name: " + folderName, false);
-                // Store the current layer in a Folder named as the array added String
-                if(groupCounter == 0){
-                    var newGroup = doc.layerSets.add();
-                    newGroup.name = folderName;
-                    currLayer.move(newGroup, ElementPlacement.INSIDE);
-                    groupCounter++;
-                }
-                else {
-                    for(var g = 0; g < groupCounter; ++g) {
-                        var currGroup = doc.layerSets[g];
-                        // If there isnt a existing group,create a new one
-                        if(currGroup.name != folderName) {
-                            alert("New Group", false);
-                            var newGroup = doc.layerSets.add();
-                            newGroup.name = folderName;
-                            currLayer.move(newGroup, ElementPlacement.INSIDE);
-                            groupCounter++;
-                        }
-                        else 
-                        {
-                            currLayer.move(currGroup, ElementPlacement.INSIDE);
-                        }
-                        app.refresh();
-                    }
-                    app.refresh();
-                }
-                tmpName = '';
+
+                    StoreCurrLayerInGroup(folderName, currLayer, tmpName);
+               
+               tmpName = '';
             }
             // If the current character is a '_', clear the var and start again
             if (currChar == " ") {
@@ -919,7 +908,7 @@ function OrderLayersInFolders() {
     }
 }
 
-function setColorChannel(R,G,B) {
+function setColorChannel(R,G,B, A) {
     var actionDesc = new ActionDescriptor();
     var actionRef = new ActionReference();
     actionRef.putEnumerated(app.charIDToTypeID('Lyr '),
@@ -937,6 +926,9 @@ function setColorChannel(R,G,B) {
     }
     if (B) {
         actionList.putEnumerated(app.charIDToTypeID('Chnl'), app.charIDToTypeID('Bl  '));
+    }
+    if (A) {
+    //    actionList.putEnumerated(app.charIDToTypeID('Chnl'), app.charIDToTypeID('Trsp  '));
     }
     actionDesc2.putList(app.stringIDToTypeID('channelRestrictions'), actionList);
     actionDesc.putObject(app.charIDToTypeID('T   '), app.charIDToTypeID('Lyr '), actionDesc2);
@@ -959,4 +951,35 @@ function ExportAllLayersToPNG() {
         doc.saveAs(file, opts, true);      
         doc.artLayers[i].visible = false;
     }
+};
+
+function StoreCurrLayerInGroup(_groupName, _layer, _type) {
+    _layer.name = _type;
+    for(var i = 0; i < doc.layerSets.length; ++i) {
+        var currGroup = doc.layerSets[i];
+        // Check if the group exist by name and store layer
+        if(currGroup.name == _groupName) {
+            // Store current layer in that group
+            _layer.move(currGroup, ElementPlacement.INSIDE); 
+        }
+        else {
+            // if the group does not exist, we create a new one
+            var newGroup = doc.layerSets.add();
+            newGroup.name = _groupName;
+            // And store the current layer
+            _layer.move(newGroup, ElementPlacement.INSIDE);
+        }
+    }
+
+    /* If there is no existing groups and a new layer wants to be stored,
+     * We create a new group.
+     */
+    if(doc.layerSets.length == 0){
+        var newGroup = doc.layerSets.add();
+        newGroup.name = _groupName;
+        _layer.move(newGroup, ElementPlacement.INSIDE);
+    }
+    // Refresh the app
+    app.refresh();
 }
+
