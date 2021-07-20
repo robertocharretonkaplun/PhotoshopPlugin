@@ -142,6 +142,8 @@ var dropdown0 = panel1.add("dropdownlist", undefined, undefined, {name: "dropdow
         doc.activeLayer = doc.artLayers[dropdown0.selection];
         doc.activeLayer.visible = true;
         var fileName = edittext1.text;
+
+        
         doc.resizeImage(doc.width / Math.round(LODSlider.value), doc.height / Math.round(LODSlider.value));
         var file = new File(CompressionPath + "/" + fileName);
         var opts = new PNGSaveOptions();
